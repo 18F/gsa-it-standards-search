@@ -1,0 +1,146 @@
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="uswds/css/uswds.min.css"></link>
+  <style type="text/css">
+    body {
+      background: #f1f1f1;
+    }
+
+    #wait {
+      text-align: center;
+      font-size: 7em;
+    }
+
+    #content {
+      max-width: 800px;
+      margin: 8em auto 3em auto;
+      background-color: white;
+      border: 1px solid black;
+      padding: 0 1em;
+      display: none;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .Proposed {
+      background-color: #f9c642;
+      color: black;
+    }
+
+    small.Approved {
+      background-color: #2e8540;
+    }
+
+    small.Sunsetting {
+      background-color: #e7f4e4;
+      color: black;
+    }
+
+    small.Denied {
+      background-color: #e31c3d;
+    }
+
+    small.Not.Yet.Submitted {
+      background-color: #aeb0b5;
+    }
+
+    .list-item {
+      margin: 2em 0;
+    }
+
+    .list-item + .list-item {
+      border-top: 1px solid black;
+      margin-top: 2em;
+      padding-top: 2em;
+    }
+
+    .platform {
+      margin-top: 1em;
+      font-weight: 600;
+    }
+
+    #search {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1em 0;
+      background-color: #112e51;
+    }
+
+    input#search-field-big {
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="wait">
+    Hang on a sec...
+  </div>
+
+  <div id="content">
+    <div id="search">
+      <label class="usa-sr-only" for="search-field-big">Search big</label>
+      <input id="search-field-big" type="search" name="search" placeholder="search">
+    </div>
+
+    <div id="the-list">
+    </div>
+  </div>
+
+  <script id="list-item-template" type="text/x-handlebars-tepmlate">
+    <div class="list-item">
+      <h2>{{name}} <small class="usa-label {{status}}">{{status}}</small></h2>
+      <div class="description">{{description}}</div>
+      <div class="platform">This is a {{platform}} product</div>
+    </div>
+  </script>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.min.js"></script>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="jquery.csv.min.js"></script>
+  <script type="text/javascript" src="jquery.ba-throttle-debounce.min.js"></script>
+  <script type="text/javascript">
+    theList = [];
+
+    function render(items) {
+      var templateBones = $('#list-item-template').html();
+      var template = Handlebars.compile(templateBones);
+
+      $('#the-list').empty();
+      items.forEach(function(item) {
+        $('#the-list').append(template(item));
+      });
+    }
+
+    $(document).ready(function() {
+      $.ajax({
+        url: 'https://raw.githubusercontent.com/GSA/data/gh-pages/enterprise-architecture/it-standards.csv',
+        success: function(csv) {
+          theList = $.csv.toObjects(csv).map(function(item) {
+            return {
+              name: item['Standard Name'],
+              description: item['Description'],
+              category: item['Category'],
+              status: item['Status'],
+              platform: item['Deployment Type'],
+              expiration: item['Approval Expiration Date']
+            };
+          });
+          $('#wait').hide();
+          $('#content').show();
+        }
+      });
+
+      $('#search-field-big').keypress($.debounce(250, function() {
+        var search = $(this).val().toLowerCase();
+        render(theList.filter(function(item) {
+          return item.name.toLowerCase().includes(search) || item.description.toLowerCase().includes(search);
+        }));
+      }));
+    });
+  </script>
+</body>
+</html>

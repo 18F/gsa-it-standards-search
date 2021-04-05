@@ -1,3 +1,7 @@
+# DEPRECATED
+
+See [the handbook](https://handbook.tts.gsa.gov/software/search/) instead!
+
 # GSA IT Standards approved software list
 
 A simple webapp for searching the GSA IT Standards approved software list
